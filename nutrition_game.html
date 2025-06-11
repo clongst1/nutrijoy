@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Nutrition Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #50b3a2;
+            color: #fff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #e8491d 3px solid;
+        }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        header ul {
+            padding: 0;
+            list-style: none;
+        }
+        header li {
+            display: inline;
+            padding: 0 20px 0 20px;
+        }
+        .main {
+            padding: 20px;
+            background: #fff;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .food-bank, .plate {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .food-item {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            background-color: #e8491d;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .plate-section {
+            width: 150px;
+            height: 150px;
+            margin: 10px;
+            background-color: #50b3a2;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .leaderboard {
+            margin-top: 20px;
+        }
+        .leaderboard h2 {
+            margin-bottom: 10px;
+        }
+        .leaderboard ul {
+            list-style: none;
+            padding: 0;
+        }
+        .leaderboard li {
+            background: #50b3a2;
+            color: #fff;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Interactive Nutrition Game</h1>
+        </div>
+    </header>
+    <div class="container main">
+        <div class="controls">
+            <div>
+                <button onclick="startGame()">Start Game</button>
+                <span id="timer">60</span> seconds left
+            </div>
+            <div>
+                <button onclick="toggleMute()">Mute/Unmute</button>
+                <input type="range" id="volume" min="0" max="1" step="0.01" onchange="setVolume(this.value)">
+            </div>
+        </div>
+        <div class="food-bank" id="food-bank">
+            <!-- Food items will be dynamically added here -->
+        </div>
+        <div class="plate">
+            <div class="plate-section" id="fruits">Fruits</div>
+            <div class="plate-section" id="vegetables">Vegetables</div>
+            <div class="plate-section" id="grains">Grains</div>
+            <div class="plate-section" id="protein">Protein</div>
+            <div class="plate-section" id="dairy">Dairy</div>
+        </div>
+        <div class="leaderboard">
+            <h2>Leaderboard</h2>
+            <ul id="leaderboard">
+                <!-- Leaderboard entries will be dynamically added here -->
+            </ul>
+        </div>
+    </div>
+    <audio id="background-music" loop>
+        <source src="lofi.mp3" type="audio/mp3">
+    </audio>
+    <script>
+        const foodItems = [
+            { name: 'Apple', category: 'fruits' },
+            { name: 'Banana', category: 'fruits' },
+            { name: 'Strawberries', category: 'fruits' },
+            { name: 'Oranges', category: 'fruits' },
+            { name: 'Carrot', category: 'vegetables' },
+            { name: 'Broccoli', category: 'vegetables' },
+            { name: 'Spinach', category: 'vegetables' },
+            { name: 'Peas', category: 'vegetables' },
+            { name: 'Bread', category: 'grains' },
+            { name: 'Rice', category: 'grains' },
+            { name: 'Oats', category: 'grains' },
+            { name: 'Pasta', category: 'grains' },
+            { name: 'Chicken', category: 'protein' },
+            { name: 'Eggs', category: 'protein' },
+            { name: 'Tofu', category: 'protein' },
+            { name: 'Beans', category: 'protein' },
+            { name: 'Milk', category: 'dairy' },
+            { name: 'Yogurt', category: 'dairy' },
+            { name: 'Cheese', category: 'dairy' },
+            { name: 'Ice Cream', category: 'dairy' }
+        ];
+
+        let score = 0;
+        let timer = 60;
+        let interval;
+        let muted = false;
+
+        function startGame() {
+            score = 0;
+            timer = 60;
+            document.getElementById('timer').innerText = timer;
+            interval = setInterval(updateTimer, 1000);
+            document.getElementById('food-bank').innerHTML = '';
+            foodItems.forEach(item => {
+                const foodElement = document.createElement('div');
+                foodElement.className = 'food-item';
+                foodElement.innerText = item.name;
+                foodElement.draggable = true;
+                foodElement.ondragstart = (event) => {
+                    event.dataTransfer.setData('text/plain', JSON.stringify(item));
+                };
+                document.getElementById('food-bank').appendChild(foodElement);
+            });
+        }
+
+        function updateTimer() {
+            timer--;
+            document.getElementById('timer').innerText = timer;
+            if (timer === 0) {
+                clearInterval(interval);
+                endGame();
+            }
+        }
+
+        function endGame() {
+            alert(`Game over! Your score is ${score}`);
+            updateLeaderboard(score);
+        }
+
+        function updateLeaderboard(newScore) {
+            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+            leaderboard.push(newScore);
+            leaderboard.sort((a, b) => b - a);
+            leaderboard = leaderboard.slice(0, 5);
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+            displayLeaderboard();
+        }
+
+        function displayLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+            const leaderboardElement = document.getElementById('leaderboard');
+            leaderboardElement.innerHTML = '';
+            leaderboard.forEach((score, index) => {
+                const scoreElement = document.createElement('li');
+                scoreElement.innerText = `${index + 1}. ${score}`;
+                leaderboardElement.appendChild(scoreElement);
+            });
+        }
+
+        function toggleMute() {
+            muted = !muted;
+            document.getElementById('background-music').muted = muted;
+        }
+
+        function setVolume(volume) {
+            document.getElementById('background-music').volume = volume;
+        }
+
+        document.querySelectorAll('.plate-section').forEach(section => {
+            section.ondragover = (event) => {
+                event.preventDefault();
+            };
+            section.ondrop = (event) => {
+                event.preventDefault();
+                const item = JSON.parse(event.dataTransfer.getData('text/plain'));
+                if (item.category === section.id) {
+                    score += 10;
+                    alert('Correct!');
+                } else {
+                    alert('Incorrect!');
+                }
+            };
+        });
+
+        window.onload = () => {
+            displayLeaderboard();
+            document.getElementById('background-music').play();
+        };
+    </script>
+</body>
+</html>
